@@ -12,6 +12,8 @@ def write_dict_to_csv(data_dict, month, attr):
     if not os.path.exists(dirpath):
         os.makedirs(dirpath)
     for user_id in data_dict.keys():
+        if user_id == "legend":
+            continue
         filepath = "{}/{}_{}.csv".format(dirpath, user_id, attr)
         with open(filepath, 'w+', newline='') as csv_file:
             writer = csv.writer(csv_file, delimiter=',')
@@ -39,17 +41,14 @@ def categorize_dataset_into_dict(filepath):
 
 
 def unmerge_datasets_of_month(month):
-    month = month.lowercase()
+    month = month.lower()
     print("Unmerging {}".format(month))
-    for root, dirs, files in os.walk("datasets/{}".format(month)):
+    for root, dirs, files in os.walk("datasets/{}/".format(month)):
         for file in files:
             if file.endswith(".csv"):
-                print(file)
-
-    # import heart_rate_sec
-    # data_dict = categorize_dataset_into_dict("datasets/{}/heartrate_seconds_merged.csv".format(month))
-    # write_dict_to_csv(data_dict, month, "heartrate_sec")
-
+                attr = file.rstrip("_merged.csv")
+                data_dict = categorize_dataset_into_dict("datasets/{}/{}".format(month, file))
+                write_dict_to_csv(data_dict, month, attr)
 
 
 def main():
@@ -67,9 +66,9 @@ def main():
         print("New directory created under path: {}".format(dirpath))
         os.makedirs(dirpath)
     # import march datasets
-
-    # import
-    return
+    unmerge_datasets_of_month(month="march")
+    # import april datasets
+    unmerge_datasets_of_month(month="april")
 
 
 if __name__ == '__main__':
