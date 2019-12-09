@@ -18,7 +18,7 @@ def parse_attr_from_csv(user_id, attr, months):
     for month in months:
         dirpath = "individuals/{}_{}".format(month, attr)
         if not os.path.exists(dirpath):
-            print("ERROR: No csv is found. Make sure you have run single_user_parser.")
+            print("ERROR: path {} does not exist".format(dirpath))
             return
         filepath = "{}/{}_{}.csv".format(dirpath, user_id, attr)
         index = 0
@@ -47,9 +47,26 @@ def get_user_ids():
     return ids
 
 
+def get_attrs():
+    attrs = []
+    dirpath = "individuals"
+    for root, dirs, files in os.walk(dirpath):
+        for dir in dirs:
+            if dir.startswith("april"):
+                attr = dir.lstrip("april_")
+                attrs.append(attr)
+    return attrs
+
+
 def main():
     ids = get_user_ids()
-    print(ids)
+    # print(ids)
+    attrs = get_attrs()
+    # print(attrs)
+    months = ["march", "april"]
+    minsleep_dataset = parse_attr_from_csv(ids[0], "minuteSleep", months)
+    # print(minsleep_dataset)
+
 
 
 if __name__ == '__main__':
