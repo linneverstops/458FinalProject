@@ -5,6 +5,59 @@
 import os
 import sys
 import csv
+import datetime
+import numpy as np
+
+
+def convert_heartrate_secs_to_hour(months):
+    for month in months:
+        dirpath = "individuals/{}_{}".format(month, "heartrate_secon")
+        new_dirpath = "individuals/{}_{}".format(month, "heartrate_hour")
+        if not os.path.exists(new_dirpath):
+            os.makedirs(new_dirpath)
+        for root, dirs, files in os.walk(dirpath):
+            for file in files:
+                id_attr = file.rstrip("_secon.csv")
+                filepath = "{}/{}".format(dirpath, file)
+                new_filepath = "{}/{}_hour.csv".format(new_dirpath, id_attr)
+                with open(filepath, newline='') as r:
+                    seconds_data = []
+                    reader = csv.reader(r, delimiter=',')
+                    for row in reader:
+                        seconds_data.append(row)
+                    hour_data = __convert_seconds_data_to_hour(seconds_data)
+                    # with open(new_filepath, 'w+', newline='') as w:
+                    #     writer = csv.writer(w, delimiter=',')
+                    #     for row in hour_data:
+                    #         writer.writerow(row)
+
+
+def __convert_seconds_data_to_hour(seconds_data):
+    hour_data = []
+    buffer = []
+    user_id = seconds_data[1][0]
+    is_legend_row = True
+    start_datetime = None
+    for row in seconds_data:
+        if is_legend_row:
+            is_legend_row = False
+            continue
+        datetime_str = row[1]
+        cur_datetime = datetime.datetime.strptime(datetime_str, "%m/%d/%Y %H:%M:%S %p")
+        if len(buffer) > 0:
+            time_diff_in_s = (cur_datetime - start_datetime).total_seconds()
+            hours = divmod(time_diff_in_s, 3600)[0]
+            if hours >= 1.0:
+                print(len(buffer))
+                # retrieve the heartrate
+                mean_hour_hr = np.mean(buffer[:, 2])
+                hour_data.append([user_id, buffer[0], mean_hour_hr])
+                buffer = []
+        else:
+            print(row)
+            buffer.append(row)
+            start_datetime = cur_datetime
+    return hour_data
 
 
 def write_dict_to_csv(data_dict, month, attr):
@@ -71,5 +124,10 @@ def main():
     unmerge_datasets_of_month(month="april")
 
 
+def main2():
+    convert_heartrate_secs_to_hour(["march", "april"])
+
+
 if __name__ == '__main__':
-    main()
+    # main()
+    main2()

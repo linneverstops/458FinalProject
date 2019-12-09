@@ -1,6 +1,6 @@
 import csv
 import os
-
+from sklearn import cluster, datasets
 import numpy as np
 from sklearn.neighbors import KNeighborsClassifier
 
@@ -32,7 +32,7 @@ def parse_attr_from_csv(user_id, attr, months):
                 else:
                     dataset.append(row)
                     index += 1
-            print("Total num of lines: {}".format(row))
+            print("Total num of lines: {}".format(index))
     return dataset
 
 
@@ -66,7 +66,9 @@ def main():
     months = ["march", "april"]
     minsleep_dataset = parse_attr_from_csv(ids[0], "minuteSleep", months)
     # print(minsleep_dataset)
-
+    k_means = cluster.KMeans(n_clusters=2)
+    k_means.fit(minsleep_dataset)
+    print(k_means.labels_[::10])
 
 
 if __name__ == '__main__':
