@@ -3,7 +3,7 @@ import os
 from sklearn import cluster, datasets
 import numpy as np
 import matplotlib.pyplot as plt
-
+import datetime
 
 def find_global_mean(attr, months):
     pass
@@ -13,8 +13,8 @@ def find_monthly_mean(attr, month):
     pass
 
 
-def parse_attr_values_to_list(user_id, attr, months, value_at_col):
-    list = []
+def parse_attr(user_id, attr, months):
+    dataset = []
     for month in months:
         dirpath = "individuals/{}_{}".format(month, attr)
         if not os.path.exists(dirpath):
@@ -30,10 +30,9 @@ def parse_attr_values_to_list(user_id, attr, months, value_at_col):
                     index += 1
                     continue
                 else:
-                    list.append(row[value_at_col])
+                    dataset.append(row)
                     index += 1
-            # print("Total num of lines: {}".format(index))
-    return list
+    return dataset
 
 
 def get_user_ids():
@@ -58,26 +57,43 @@ def get_attrs():
     return attrs
 
 
-def plot_kmeans_clusters(input):
-    k_means = cluster.KMeans(n_clusters=4)
-    k_means.fit(input)
-    plt.scatter(input[:, 0], input[:, 1], c=k_means.labels_, cmap='rainbow')
+def produce_aligned_dataset(dataset_1, dataset_2):
+    aligned = []
+    for entry_1 in dataset_1:
+        datetime_1_str = entry_1[1]
+        datetime_1 = datetime.datetime.strptime(datetime_1_str, "%m/%d/%Y %H:%M:%S %p")
+        for entry_2 in dataset_2:
+            datetime_2_str = entry_2[1]
+            datetime_2 = datetime.datetime.strptime(datetime_2_str, "%m/%d/%Y %H:%M:%S %p")
+            same_time = (datetime_2 - datetime_1).total_seconds() == 0.0
+            if same_time:
+                aligned.append([entry_1[2], entry_2[2]])
+    return aligned
+
+
+def plot_kmeans_clusters(dataset):
+    k_means = cluster.KMeans(n_clusters=2)
+    k_means.fit(dataset)
+    plt.figure(1)
+    plt.xticks([])
+    plt.yticks([])
+    plt.scatter(dataset[:, 0], dataset[:, 1], c=k_means.labels_, cmap='rainbow')
     plt.scatter(k_means.cluster_centers_[:, 0], k_means.cluster_centers_[:, 1], color='black')
+    plt.legend()
     plt.show()
 
 
 def main():
-    ids = get_user_ids()
-    attrs = get_attrs()
+    # ids = get_user_ids()
+    # attrs = get_attrs()
     months = ["march", "april"]
-    dataset = []
-    hour_calorie = parse_attr_values_to_list("6962181067", "hourlyCalories", months, 2)
-    hour_heartrate = parse_attr_values_to_list("6962181067", "heartrate_hour", months, 2)
-    dataset.append(hour_calorie)
-    dataset.append(hour_heartrate)
-    input = np.array(list(map(list, zip(*dataset))))
-    plot_kmeans_clusters(input)
-
+    hourly_calorie = parse_attr("6962181067", "hourlyCalories", months)
+    hourly_heartrate = parse_attr("6962181067", "heartrate_hour", months)
+    aligned = produce_aligned_dataset(hourly_calorie, hourly_heartrate)
+    # print(aligned)
+    print(len(aligned))
+    # input = np.array(list(map(list, zip(*dataset))))
+    plot_kmeans_clusters(np.array(aligned))
 
 
 if __name__ == '__main__':
