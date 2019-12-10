@@ -11,13 +11,13 @@ import numpy as np
 
 def convert_heartrate_secs_to_hour(months):
     for month in months:
-        dirpath = "individuals/{}_{}".format(month, "heartrate_secon")
+        dirpath = "individuals/{}_{}".format(month, "heartrate_seconds")
         new_dirpath = "individuals/{}_{}".format(month, "heartrate_hour")
         if not os.path.exists(new_dirpath):
             os.makedirs(new_dirpath)
         for root, dirs, files in os.walk(dirpath):
             for file in files:
-                id_attr = file.rstrip("_secon.csv")
+                id_attr = file.replace("_seconds.csv", "")
                 filepath = "{}/{}".format(dirpath, file)
                 new_filepath = "{}/{}_hour.csv".format(new_dirpath, id_attr)
                 with open(filepath, newline='') as r:
@@ -100,7 +100,7 @@ def unmerge_datasets_of_month(month):
     for root, dirs, files in os.walk("datasets/{}/".format(month)):
         for file in files:
             if file.endswith(".csv"):
-                attr = file.rstrip("_merged.csv")
+                attr = file.replace("_merged.csv", "")
                 data_dict = categorize_dataset_into_dict("datasets/{}/{}".format(month, file))
                 write_dict_to_csv(data_dict, month, attr)
 

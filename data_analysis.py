@@ -13,8 +13,8 @@ def find_monthly_mean(attr, month):
     pass
 
 
-def parse_attr_from_csv(user_id, attr, months):
-    dataset = []
+def parse_attr_values_to_list(user_id, attr, months, value_at_col):
+    list = []
     for month in months:
         dirpath = "individuals/{}_{}".format(month, attr)
         if not os.path.exists(dirpath):
@@ -30,10 +30,10 @@ def parse_attr_from_csv(user_id, attr, months):
                     index += 1
                     continue
                 else:
-                    dataset.append(row)
+                    list.append(row[value_at_col])
                     index += 1
-            print("Total num of lines: {}".format(index))
-    return dataset
+            # print("Total num of lines: {}".format(index))
+    return list
 
 
 def get_user_ids():
@@ -42,7 +42,7 @@ def get_user_ids():
     for root, dirs, files in os.walk(dirpath):
         for file in files:
             if file.endswith(".csv"):
-                id = file.rstrip("_minuteSleep.csv")
+                id = file.replace("_minuteSleep.csv", "")
                 ids.append(id)
     return ids
 
@@ -53,21 +53,22 @@ def get_attrs():
     for root, dirs, files in os.walk(dirpath):
         for dir in dirs:
             if dir.startswith("april"):
-                attr = dir.lstrip("april_")
+                attr = dir.replace("april_", "")
                 attrs.append(attr)
     return attrs
 
 
 def main():
     ids = get_user_ids()
-    # print(ids)
     attrs = get_attrs()
-    # print(attrs)
     months = ["march", "april"]
-    minsleep_dataset = parse_attr_from_csv(ids[0], "minuteSleep", months)
-    # print(minsleep_dataset)
+    dataset = []
+    hour_calorie = parse_attr_values_to_list("6962181067", "hourlyCalorie", months, 2)
+    hour_heartrate = parse_attr_values_to_list("6962181067", "heartrate_hour", months, 2)
+    dataset.append(hour_calorie)
+    dataset.append(hour_heartrate)
     k_means = cluster.KMeans(n_clusters=2)
-    k_means.fit(minsleep_dataset)
+    k_means.fit(np.array(dataset))
     print(k_means.labels_[::10])
 
 
