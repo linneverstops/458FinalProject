@@ -5,6 +5,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import datetime
 from sklearn.neighbors import KNeighborsClassifier
+import sklearn.utils
 
 def find_global_mean(attr, months):
     pass
@@ -68,46 +69,61 @@ def produce_aligned_dataset(dataset_1, dataset_2):
             datetime_2 = datetime.datetime.strptime(datetime_2_str, "%m/%d/%Y %H:%M:%S %p")
             same_time = (datetime_2 - datetime_1).total_seconds() == 0.0
             if same_time:
-                aligned.append([float(entry_1[2]), float(entry_2[2])])
-    return aligned
+                aligned.append([np.float64(entry_1[2]), np.float64(entry_2[2])])
+    return np.array(aligned)
 
 
-def plot_kmeans_clusters(dataset, n_clusters=2):
+def get_k_means_classifier(dataset, n_clusters=2):
     k_means = cluster.KMeans(n_clusters=n_clusters)
     k_means.fit(dataset)
-    plt.figure(1)
-    plt.xticks([])
-    plt.yticks([])
-    plt.scatter(dataset[:, 0], dataset[:, 1], c=k_means.labels_, cmap='rainbow')
-    plt.scatter(k_means.cluster_centers_[:, 0], k_means.cluster_centers_[:, 1], color='black')
-    plt.legend()
-    plt.show()
+    print("K-Means Clusters with k = {}".format(n_clusters))
+    for center in k_means.cluster_centers_:
+        print("HR: {}; Calories: {}".format(str(center[0])[:5], str(center[1])[:5]))
+    return k_means
 
 
 def get_k_nearest_neighbors_classifier(dataset, n_neighbors=2):
     x_train = dataset[:, 0].reshape(-1, 1)
     y_train = dataset[:, 1]
     classifier = KNeighborsClassifier(n_neighbors=n_neighbors)
+    # This line is giving a lot of FutureWarnings even when the entire array is np.float64
+    # Will supress it for now
+    import warnings
+    warnings.simplefilter(action='ignore', category=FutureWarning)
     classifier.fit(x_train, y_train)
     return classifier
 
 
+def plot_k_means_clusters(classifier, dataset, n_clusters=2):
+    plt.figure(n_clusters-1)
+    plt.scatter(dataset[:, 0], dataset[:, 1], c=classifier.labels_, cmap='rainbow')
+    plt.scatter(classifier.cluster_centers_[:, 0], classifier.cluster_centers_[:, 1], color='black')
+    plt.title("KMeans with {} clusters".format(n_clusters))
+    plt.show()
+
+
+def predict_calories_with_heartrates(classifier, heartrates):
+    results = []
+    for hr in heartrates:
+        predicted_calories = classifier.predict([[hr]])[0]
+        print("HR: {}; Predicted Calories: {}".format(hr, predicted_calories))
+        results.append(hr)
+    return results
+
+
 def main():
-    # ids = get_user_ids()
-    # attrs = get_attrs()
     months = ["march", "april"]
     hourly_heartrate = parse_attr("6962181067", "heartrate_hour", months)
     hourly_calorie = parse_attr("6962181067", "hourlyCalories", months)
-    aligned = np.array(produce_aligned_dataset(hourly_heartrate, hourly_calorie))
-    print(aligned[::10])
-    print(len(aligned))
-    # plot_kmeans_clusters(np.array(aligned))
-    classifier = get_k_nearest_neighbors_classifier(aligned)
-    print(classifier.predict([["250"]]))
-    print(classifier.predict([["200"]]))
-    print(classifier.predict([["150"]]))
-    print(classifier.predict([["100"]]))
-    print(classifier.predict([["80"]]))
+    aligned = produce_aligned_dataset(hourly_heartrate, hourly_calorie)
+    print("Dataset Length: {}".format(len(aligned)))
+    for k in range(2, 8):
+        print("\n********K={}********".format(k))
+        k_means = get_k_means_classifier(aligned, n_clusters=k)
+        plot_k_means_clusters(k_means, aligned, n_clusters=k)
+        classifier = get_k_nearest_neighbors_classifier(aligned, n_neighbors=k)
+        print("K-Neighbor for k = {}:".format(k))
+        predict_calories_with_heartrates(classifier, ["50", "80", "100", "120", "150", "180", "200", "220"])
 
 
 if __name__ == '__main__':
