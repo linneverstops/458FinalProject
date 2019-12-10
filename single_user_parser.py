@@ -37,7 +37,6 @@ def __convert_seconds_data_to_hour(seconds_data):
     buffer = []
     user_id = seconds_data[1][0]
     is_legend_row = True
-    start_datetime = None
     for row in seconds_data:
         if is_legend_row:
             is_legend_row = False
@@ -45,19 +44,20 @@ def __convert_seconds_data_to_hour(seconds_data):
         datetime_str = row[1]
         cur_datetime = datetime.datetime.strptime(datetime_str, "%m/%d/%Y %H:%M:%S %p")
         if len(buffer) > 0:
+            start_datetime = datetime.datetime.strptime(buffer[0][1], "%m/%d/%Y %H:%M:%S %p")
             time_diff_in_s = (cur_datetime - start_datetime).total_seconds()
             hours = divmod(time_diff_in_s, 3600)[0]
-            if hours >= 1.0:
+            if np.abs(hours) >= 1.0:
+                # print(np.abs(hours))
                 # retrieve the heartrate
                 mean_hour_hr = str(np.mean(np.array(buffer)[:, 2].astype(np.float)))[:5]
-                # print(mean_hour_hr)
-                hour_data.append([user_id, buffer[0][1], mean_hour_hr])
+                corrected_datetime = start_datetime.replace(minute=0, second=0)
+                hour_data.append([user_id, corrected_datetime, mean_hour_hr])
                 buffer = []
             else:
                 buffer.append(row)
         else:
             buffer.append(row)
-            start_datetime = cur_datetime
     return hour_data
 
 
