@@ -42,16 +42,19 @@ def __convert_seconds_data_to_hour(seconds_data):
             is_legend_row = False
             continue
         datetime_str = row[1]
-        cur_datetime = datetime.datetime.strptime(datetime_str, "%m/%d/%Y %H:%M:%S %p")
+        cur_datetime = datetime.datetime.strptime(datetime_str, "%m/%d/%Y %I:%M:%S %p")
         if len(buffer) > 0:
-            start_datetime = datetime.datetime.strptime(buffer[0][1], "%m/%d/%Y %H:%M:%S %p")
+            start_datetime = datetime.datetime.strptime(buffer[0][1], "%m/%d/%Y %I:%M:%S %p")
             time_diff_in_s = (cur_datetime - start_datetime).total_seconds()
             hours = divmod(time_diff_in_s, 3600)[0]
             if np.abs(hours) >= 1.0:
+                # start_datetime.
                 # print(np.abs(hours))
                 # retrieve the heartrate
-                mean_hour_hr = str(np.mean(np.array(buffer)[:, 2].astype(np.float)))[:5]
-                corrected_datetime = start_datetime.replace(minute=0, second=0).strftime("%m/%d/%Y %H:%M:%S %p")
+                # use the max instead of the mean
+                # mean_hour_hr = str(np.mean(np.array(buffer)[:, 2].astype(np.float)))[:5]
+                mean_hour_hr = str(np.max(np.array(buffer)[:, 2].astype(np.float)))[:5]
+                corrected_datetime = start_datetime.replace(minute=0, second=0).strftime("%m/%d/%Y %I:%M:%S %p")
                 hour_data.append([user_id, corrected_datetime, mean_hour_hr])
                 buffer = []
             else:

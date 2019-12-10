@@ -4,6 +4,7 @@ from sklearn import cluster, datasets
 import numpy as np
 import matplotlib.pyplot as plt
 import datetime
+from sklearn.neighbors import KNeighborsClassifier
 
 def find_global_mean(attr, months):
     pass
@@ -67,12 +68,12 @@ def produce_aligned_dataset(dataset_1, dataset_2):
             datetime_2 = datetime.datetime.strptime(datetime_2_str, "%m/%d/%Y %H:%M:%S %p")
             same_time = (datetime_2 - datetime_1).total_seconds() == 0.0
             if same_time:
-                aligned.append([entry_1[2], entry_2[2]])
+                aligned.append([float(entry_1[2]), float(entry_2[2])])
     return aligned
 
 
-def plot_kmeans_clusters(dataset):
-    k_means = cluster.KMeans(n_clusters=2)
+def plot_kmeans_clusters(dataset, n_clusters=2):
+    k_means = cluster.KMeans(n_clusters=n_clusters)
     k_means.fit(dataset)
     plt.figure(1)
     plt.xticks([])
@@ -83,17 +84,30 @@ def plot_kmeans_clusters(dataset):
     plt.show()
 
 
+def get_k_nearest_neighbors_classifier(dataset, n_neighbors=2):
+    x_train = dataset[:, 0].reshape(-1, 1)
+    y_train = dataset[:, 1]
+    classifier = KNeighborsClassifier(n_neighbors=n_neighbors)
+    classifier.fit(x_train, y_train)
+    return classifier
+
+
 def main():
     # ids = get_user_ids()
     # attrs = get_attrs()
     months = ["march", "april"]
-    hourly_calorie = parse_attr("6962181067", "hourlyCalories", months)
     hourly_heartrate = parse_attr("6962181067", "heartrate_hour", months)
-    aligned = produce_aligned_dataset(hourly_calorie, hourly_heartrate)
-    # print(aligned)
+    hourly_calorie = parse_attr("6962181067", "hourlyCalories", months)
+    aligned = np.array(produce_aligned_dataset(hourly_heartrate, hourly_calorie))
+    print(aligned[::10])
     print(len(aligned))
-    # input = np.array(list(map(list, zip(*dataset))))
-    plot_kmeans_clusters(np.array(aligned))
+    # plot_kmeans_clusters(np.array(aligned))
+    classifier = get_k_nearest_neighbors_classifier(aligned)
+    print(classifier.predict([["250"]]))
+    print(classifier.predict([["200"]]))
+    print(classifier.predict([["150"]]))
+    print(classifier.predict([["100"]]))
+    print(classifier.predict([["80"]]))
 
 
 if __name__ == '__main__':
