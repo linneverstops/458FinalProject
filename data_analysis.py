@@ -2,7 +2,7 @@ import csv
 import os
 from sklearn import cluster, datasets
 import numpy as np
-from sklearn.neighbors import KNeighborsClassifier
+import matplotlib.pyplot as plt
 
 
 def find_global_mean(attr, months):
@@ -58,18 +58,26 @@ def get_attrs():
     return attrs
 
 
+def plot_kmeans_clusters(input):
+    k_means = cluster.KMeans(n_clusters=4)
+    k_means.fit(input)
+    plt.scatter(input[:, 0], input[:, 1], c=k_means.labels_, cmap='rainbow')
+    plt.scatter(k_means.cluster_centers_[:, 0], k_means.cluster_centers_[:, 1], color='black')
+    plt.show()
+
+
 def main():
     ids = get_user_ids()
     attrs = get_attrs()
     months = ["march", "april"]
     dataset = []
-    hour_calorie = parse_attr_values_to_list("6962181067", "hourlyCalorie", months, 2)
+    hour_calorie = parse_attr_values_to_list("6962181067", "hourlyCalories", months, 2)
     hour_heartrate = parse_attr_values_to_list("6962181067", "heartrate_hour", months, 2)
     dataset.append(hour_calorie)
     dataset.append(hour_heartrate)
-    k_means = cluster.KMeans(n_clusters=2)
-    k_means.fit(np.array(dataset))
-    print(k_means.labels_[::10])
+    input = np.array(list(map(list, zip(*dataset))))
+    plot_kmeans_clusters(input)
+
 
 
 if __name__ == '__main__':
