@@ -26,10 +26,10 @@ def convert_heartrate_secs_to_hour(months):
                     for row in reader:
                         seconds_data.append(row)
                     hour_data = __convert_seconds_data_to_hour(seconds_data)
-                    # with open(new_filepath, 'w+', newline='') as w:
-                    #     writer = csv.writer(w, delimiter=',')
-                    #     for row in hour_data:
-                    #         writer.writerow(row)
+                    with open(new_filepath, 'w+', newline='') as w:
+                        writer = csv.writer(w, delimiter=',')
+                        for row in hour_data:
+                            writer.writerow(row)
 
 
 def __convert_seconds_data_to_hour(seconds_data):
@@ -48,13 +48,14 @@ def __convert_seconds_data_to_hour(seconds_data):
             time_diff_in_s = (cur_datetime - start_datetime).total_seconds()
             hours = divmod(time_diff_in_s, 3600)[0]
             if hours >= 1.0:
-                print(len(buffer))
                 # retrieve the heartrate
-                mean_hour_hr = np.mean(buffer[:, 2])
-                hour_data.append([user_id, buffer[0], mean_hour_hr])
+                mean_hour_hr = str(np.mean(np.array(buffer)[:, 2].astype(np.float)))[:5]
+                # print(mean_hour_hr)
+                hour_data.append([user_id, buffer[0][1], mean_hour_hr])
                 buffer = []
+            else:
+                buffer.append(row)
         else:
-            print(row)
             buffer.append(row)
             start_datetime = cur_datetime
     return hour_data
