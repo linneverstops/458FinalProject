@@ -51,7 +51,7 @@ def __convert_seconds_data_to_hour(seconds_data):
                 # print(np.abs(hours))
                 # retrieve the heartrate
                 mean_hour_hr = str(np.mean(np.array(buffer)[:, 2].astype(np.float)))[:5]
-                corrected_datetime = start_datetime.replace(minute=0, second=0)
+                corrected_datetime = start_datetime.replace(minute=0, second=0).strftime("%m/%d/%Y %H:%M:%S %p")
                 hour_data.append([user_id, corrected_datetime, mean_hour_hr])
                 buffer = []
             else:
