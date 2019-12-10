@@ -83,6 +83,7 @@ def get_k_means_classifier(dataset, n_clusters=2):
 
 
 def get_k_nearest_neighbors_classifier(dataset, n_neighbors=2):
+    print("K-Neighbors for k = {}:".format(n_neighbors))
     x_train = dataset[:, 0].reshape(-1, 1)
     y_train = dataset[:, 1]
     classifier = KNeighborsClassifier(n_neighbors=n_neighbors)
@@ -90,12 +91,15 @@ def get_k_nearest_neighbors_classifier(dataset, n_neighbors=2):
     # Will supress it for now
     import warnings
     warnings.simplefilter(action='ignore', category=FutureWarning)
+
     classifier.fit(x_train, y_train)
     return classifier
 
 
 def plot_k_means_clusters(classifier, dataset, n_clusters=2):
     plt.figure(n_clusters-1)
+    plt.xlabel('Hourly HeartRate')
+    plt.ylabel('Hourly Calories')
     plt.scatter(dataset[:, 0], dataset[:, 1], c=classifier.labels_, cmap='rainbow')
     plt.scatter(classifier.cluster_centers_[:, 0], classifier.cluster_centers_[:, 1], color='black')
     plt.title("KMeans with {} clusters".format(n_clusters))
@@ -122,7 +126,6 @@ def main():
         k_means = get_k_means_classifier(aligned, n_clusters=k)
         plot_k_means_clusters(k_means, aligned, n_clusters=k)
         classifier = get_k_nearest_neighbors_classifier(aligned, n_neighbors=k)
-        print("K-Neighbor for k = {}:".format(k))
         predict_calories_with_heartrates(classifier, ["50", "80", "100", "120", "150", "180", "200", "220"])
 
 
