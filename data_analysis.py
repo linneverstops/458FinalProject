@@ -139,8 +139,8 @@ def predict_with_classifier(classifier, heartrates):
     return results
 
 
-def heartrate_nbayes(dataset):
-
+def heartrate_prediction(dataset):
+    pass
 
 
 def main():
