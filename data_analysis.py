@@ -4,8 +4,10 @@ from sklearn import cluster, datasets
 import numpy as np
 import matplotlib.pyplot as plt
 import datetime
+
+from sklearn.linear_model import LogisticRegression
 from sklearn.neighbors import KNeighborsClassifier
-import sklearn.utils
+from sklearn import svm
 
 def find_global_mean(attr, months):
     pass
@@ -77,23 +79,44 @@ def get_k_means_classifier(dataset, n_clusters=2):
     k_means = cluster.KMeans(n_clusters=n_clusters)
     k_means.fit(dataset)
     print("K-Means Clusters with k = {}".format(n_clusters))
+    print("K-Means Score: {}".format(k_means.score(dataset)))
     for center in k_means.cluster_centers_:
-        print("HR: {}; Calories: {}".format(str(center[0])[:5], str(center[1])[:5]))
+        print("HR: {}; Calories: {}; Ratio: {}".format(str(center[0])[:5], str(center[1])[:5]
+              , str(center[0]/center[1])[:5]))
     return k_means
 
 
-def get_k_nearest_neighbors_classifier(dataset, n_neighbors=2):
+def get_knn_classifier(dataset, n_neighbors=2):
     print("K-Neighbors for k = {}:".format(n_neighbors))
     x_train = dataset[:, 0].reshape(-1, 1)
     y_train = dataset[:, 1]
-    classifier = KNeighborsClassifier(n_neighbors=n_neighbors)
+    knn = KNeighborsClassifier(n_neighbors=n_neighbors)
     # This line is giving a lot of FutureWarnings even when the entire array is np.float64
     # Will supress it for now
     import warnings
     warnings.simplefilter(action='ignore', category=FutureWarning)
 
-    classifier.fit(x_train, y_train)
-    return classifier
+    knn.fit(x_train, y_train)
+    print("KNN Score: {}".format(knn.score(x_train, y_train)))
+    return knn
+
+
+def get_svm_classifier(dataset):
+    svc = svm.SVC(kernel='rbf', C=1.0)
+    x_train = dataset[:, 0].reshape(-1, 1)
+    y_train = dataset[:, 1]
+    svc.fit(x_train, y_train)
+    print("SVM Score: {}".format(svc.score(x_train, y_train)))
+    return svc
+
+
+def get_logreg_classifier(dataset):
+    x_train = dataset[:, 0].reshape(-1, 1)
+    y_train = dataset[:, 1]
+    logreg = LogisticRegression(random_state=0)
+    logreg.fit(x_train, y_train)
+    print("LogReg Score: {}".format(logreg.score(x_train, y_train)))
+    return logreg
 
 
 def plot_k_means_clusters(classifier, dataset, n_clusters=2):
@@ -106,27 +129,37 @@ def plot_k_means_clusters(classifier, dataset, n_clusters=2):
     plt.show()
 
 
-def predict_calories_with_heartrates(classifier, heartrates):
+def predict_with_classifier(classifier, heartrates):
     results = []
     for hr in heartrates:
         predicted_calories = classifier.predict([[hr]])[0]
         print("HR: {}; Predicted Calories: {}".format(hr, predicted_calories))
-        results.append(hr)
+        # print("Prob = {}".format(predicted_calories_prob))
+        results.append(predicted_calories)
     return results
+
+
+def heartrate_nbayes(dataset):
+
 
 
 def main():
     months = ["march", "april"]
+    examples_heartrates = np.array(["73", "75", "135", "151"]).astype(np.float64)
     hourly_heartrate = parse_attr("6962181067", "heartrate_hour", months)
     hourly_calorie = parse_attr("6962181067", "hourlyCalories", months)
     aligned = produce_aligned_dataset(hourly_heartrate, hourly_calorie)
     print("Dataset Length: {}".format(len(aligned)))
-    for k in range(2, 8):
+    logreg = get_logreg_classifier(aligned)
+    predict_with_classifier(logreg, examples_heartrates)
+    svc = get_svm_classifier(aligned)
+    predict_with_classifier(svc, examples_heartrates)
+    for k in range(2, 10):
         print("\n********K={}********".format(k))
         k_means = get_k_means_classifier(aligned, n_clusters=k)
         plot_k_means_clusters(k_means, aligned, n_clusters=k)
-        classifier = get_k_nearest_neighbors_classifier(aligned, n_neighbors=k)
-        predict_calories_with_heartrates(classifier, ["50", "80", "100", "120", "150", "180", "200", "220"])
+        knn = get_knn_classifier(aligned, n_neighbors=k)
+        predict_with_classifier(knn, examples_heartrates)
 
 
 if __name__ == '__main__':
