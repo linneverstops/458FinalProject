@@ -12,14 +12,14 @@ import numpy as np
 def convert_heartrate_secs_to_hour(months):
     for month in months:
         dirpath = "individuals/{}_{}".format(month, "heartrate_seconds")
-        new_dirpath = "individuals/{}_{}".format(month, "heartrate_hour")
+        new_dirpath = "individuals/{}_{}".format(month, "heartrate_hour_sum")
         if not os.path.exists(new_dirpath):
             os.makedirs(new_dirpath)
         for root, dirs, files in os.walk(dirpath):
             for file in files:
                 id_attr = file.replace("_seconds.csv", "")
                 filepath = "{}/{}".format(dirpath, file)
-                new_filepath = "{}/{}_hour.csv".format(new_dirpath, id_attr)
+                new_filepath = "{}/{}_hour_sum.csv".format(new_dirpath, id_attr)
                 with open(filepath, newline='') as r:
                     seconds_data = []
                     reader = csv.reader(r, delimiter=',')
@@ -53,9 +53,13 @@ def __convert_seconds_data_to_hour(seconds_data):
                 # retrieve the heartrate
                 # use the max instead of the mean
                 # mean_hour_hr = str(np.mean(np.array(buffer)[:, 2].astype(np.float)))[:5]
-                mean_hour_hr = str(np.max(np.array(buffer)[:, 2].astype(np.float)))[:5]
+
+                # max_hour_hr = str(np.max(np.array(buffer)[:, 2].astype(np.float)))[:5]
+                # try using sum of all heartrates?
+                sum_hour_hr = str(np.sum(np.array(buffer)[:, 2].astype(np.float)))[:5]
                 corrected_datetime = start_datetime.replace(minute=0, second=0).strftime("%m/%d/%Y %I:%M:%S %p")
-                hour_data.append([user_id, corrected_datetime, mean_hour_hr])
+                # hour_data.append([user_id, corrected_datetime, max_hour_hr])
+                hour_data.append([user_id, corrected_datetime, sum_hour_hr])
                 buffer = []
             else:
                 buffer.append(row)
