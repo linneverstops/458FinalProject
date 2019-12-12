@@ -1,7 +1,7 @@
 # EECS458 BioInfo
 # TungHo Lin
 # txl429
-# This file will take a merged datafile and outputs them into individual files
+# This file will take a merged datafile and outputs them into named individual files
 import os
 import sys
 import csv
@@ -115,23 +115,19 @@ def main():
     # -hourly_steps
     # -minute_sleep
     # -weight_log_info
-
     wd = os.getcwd()
     dirpath = wd + "/individuals"
+    months = ["march", "april"]
     # create a directory 'output' if it doesn't exist yet
     if not os.path.exists(dirpath):
         print("New directory created under path: {}".format(dirpath))
         os.makedirs(dirpath)
-    # import march datasets
-    unmerge_datasets_of_month(month="march")
-    # import april datasets
-    unmerge_datasets_of_month(month="april")
-
-
-def main2():
-    convert_heartrate_secs_to_hour(["march", "april"])
+    for month in months:
+        # import all the datasets from months
+        unmerge_datasets_of_month(month=month)
+    # convert heartrate seconds to heartrate hours
+    convert_heartrate_secs_to_hour(months)
 
 
 if __name__ == '__main__':
-    # main()
-    main2()
+    main()

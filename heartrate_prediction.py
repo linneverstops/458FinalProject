@@ -1,9 +1,14 @@
-from data_analysis import *
+# EECS458 BioInfo
+# TungHo Lin
+# txl429
+# This file will or will not work
+from data_ml import *
 import numpy as np
 
-def heartrate_prediction:
-    model = {}
 
+def heartrate_prediction():
+    model = {}
+    pass
 
 
 def main():

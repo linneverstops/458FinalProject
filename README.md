@@ -5,18 +5,16 @@ Fitbit dataset downloaded from: \
 https://zenodo.org/record/53894
 
 Dataset:\
--2 months of fitbit data sourced from a crowd
+-2 months of fitbit data sourced from 30 participants
 
 Fields of interest:\
--heartrate_seconds\
+-heartrate_seconds (will be converted to heartrate_hour)\
 -hourly_calories\
--hourly_intensities\
 -hourly_steps\
--minute_sleep\
--weight_log_info\
 
 Idea:\
 -parse the collective dataset into different users\
--discover pattern in the dataset\
+-preprocess data to match the timestamp and values\
+-Use (mainly) K-Means Clustering and KNN to classify samples\
 -identify abnormalities/outliers\
--possibility: calculate a risk based on the date and the mean of all the users\
+-Calculate a new sample's heartrate/steps ratio\

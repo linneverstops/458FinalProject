@@ -1,6 +1,11 @@
+# EECS458 BioInfo
+# TungHo Lin
+# txl429
+# This file employs ML algorithms to the datasets
+
 import csv
 import os
-from sklearn import cluster, datasets
+from sklearn import cluster
 import numpy as np
 import matplotlib.pyplot as plt
 import datetime
@@ -8,6 +13,7 @@ import datetime
 from sklearn.linear_model import LogisticRegression
 from sklearn.neighbors import KNeighborsClassifier
 from sklearn import svm
+
 
 def find_global_mean(attr, months):
     pass
@@ -81,7 +87,7 @@ def get_k_means_classifier(dataset, n_clusters=2):
     print("K-Means Clusters with k = {}".format(n_clusters))
     print("K-Means Score: {}".format(k_means.score(dataset)))
     for center in k_means.cluster_centers_:
-        print("HR: {}; Calories: {}; Ratio: {}".format(str(center[0])[:5], str(center[1])[:5]
+        print("HR: {}; Steps: {}; Ratio: {}".format(str(center[0])[:5], str(center[1])[:5]
               , str(center[0]/center[1])[:5]))
     return k_means
 
@@ -91,11 +97,6 @@ def get_knn_classifier(dataset, n_neighbors=2):
     x_train = dataset[:, 0].reshape(-1, 1)
     y_train = dataset[:, 1]
     knn = KNeighborsClassifier(n_neighbors=n_neighbors)
-    # This line is giving a lot of FutureWarnings even when the entire array is np.float64
-    # Will supress it for now
-    import warnings
-    warnings.simplefilter(action='ignore', category=FutureWarning)
-
     knn.fit(x_train, y_train)
     print("KNN Score: {}".format(knn.score(x_train, y_train)))
     return knn
@@ -122,7 +123,7 @@ def get_logreg_classifier(dataset):
 def plot_k_means_clusters(classifier, dataset, n_clusters=2):
     plt.figure(n_clusters-1)
     plt.xlabel('Hourly HeartRate')
-    plt.ylabel('Hourly Calories')
+    plt.ylabel('Hourly Steps')
     plt.scatter(dataset[:, 0], dataset[:, 1], c=classifier.labels_, cmap='rainbow')
     plt.scatter(classifier.cluster_centers_[:, 0], classifier.cluster_centers_[:, 1], color='black')
     plt.title("KMeans with {} clusters".format(n_clusters))
@@ -133,17 +134,38 @@ def predict_with_classifier(classifier, heartrates):
     results = []
     for hr in heartrates:
         predicted_calories = classifier.predict([[hr]])[0]
-        print("HR: {}; Predicted Calories: {}".format(hr, predicted_calories))
-        # print("Prob = {}".format(predicted_calories_prob))
+        print("HR: {}; Predicted Steps: {}".format(hr, predicted_calories))
         results.append(predicted_calories)
     return results
 
 
-def heartrate_prediction(dataset):
-    pass
+def main_hr_steps():
+    months = ["march", "april"]
+    examples_heartrates = np.array(["73", "75", "135", "151"]).astype(np.float64)
+    hourly_heartrate = parse_attr("6962181067", "heartrate_hour", months)
+    hourly_calorie = parse_attr("6962181067", "hourlySteps", months)
+    aligned = produce_aligned_dataset(hourly_heartrate, hourly_calorie)
+    print("Dataset Length: {}".format(len(aligned)))
+    logreg = get_logreg_classifier(aligned)
+    predict_with_classifier(logreg, examples_heartrates)
+    svc = get_svm_classifier(aligned)
+    predict_with_classifier(svc, examples_heartrates)
+    for k in range(2, 10):
+        print("\n********K={}********".format(k))
+        k_means = get_k_means_classifier(aligned, n_clusters=k)
+        plot_k_means_clusters(k_means, aligned, n_clusters=k)
+        knn = get_knn_classifier(aligned, n_neighbors=k)
+        predict_with_classifier(knn, examples_heartrates)
 
 
-def main():
+# I originally used "calories" to compare it to heartrate
+# but I realize it is a derived attribute so I switched over to using steps
+def main_hr_calories():
+    # This line is giving a lot of FutureWarnings even when the entire array is np.float64
+    # Will suppress it for now
+    import warnings
+    warnings.simplefilter(action='ignore', category=FutureWarning)
+
     months = ["march", "april"]
     examples_heartrates = np.array(["73", "75", "135", "151"]).astype(np.float64)
     hourly_heartrate = parse_attr("6962181067", "heartrate_hour", months)
@@ -163,4 +185,5 @@ def main():
 
 
 if __name__ == '__main__':
-    main()
+    # main_hr_calories()
+    main_hr_steps()
