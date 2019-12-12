@@ -86,8 +86,11 @@ def get_k_means_classifier(dataset, n_clusters=2):
     k_means.fit(dataset)
     print("K-Means Clusters with k = {}".format(n_clusters))
     print("K-Means Score: {}".format(k_means.score(dataset)))
-    for center in k_means.cluster_centers_:
-        print("HR: {}; Steps: {}; Ratio: {}".format(str(center[0])[:5], str(center[1])[:5]
+    sorted_centers = list(k_means.cluster_centers_)
+    sorted_centers.sort(key=lambda c: c[1])
+    # for center in k_means.cluster_centers_:
+    for center in sorted_centers:
+        print("Steps: {}; HR: {}; Ratio: {}".format(str(center[1])[:5], str(center[0])[:5]
               , str(center[0]/center[1])[:5]))
     return k_means
 
@@ -133,9 +136,9 @@ def plot_k_means_clusters(classifier, dataset, n_clusters=2):
 def predict_with_classifier(classifier, heartrates):
     results = []
     for hr in heartrates:
-        predicted_calories = classifier.predict([[hr]])[0]
-        print("HR: {}; Predicted Steps: {}".format(hr, predicted_calories))
-        results.append(predicted_calories)
+        predicted_steps = classifier.predict([[hr]])[0]
+        print("HR: {}; Predicted Steps: {}".format(hr, predicted_steps))
+        results.append(predicted_steps)
     return results
 
 
@@ -143,8 +146,8 @@ def main_hr_steps():
     months = ["march", "april"]
     examples_heartrates = np.array(["73", "75", "135", "151"]).astype(np.float64)
     hourly_heartrate = parse_attr("6962181067", "heartrate_hour", months)
-    hourly_calorie = parse_attr("6962181067", "hourlySteps", months)
-    aligned = produce_aligned_dataset(hourly_heartrate, hourly_calorie)
+    hourly_steps = parse_attr("6962181067", "hourlySteps", months)
+    aligned = produce_aligned_dataset(hourly_heartrate, hourly_steps)
     print("Dataset Length: {}".format(len(aligned)))
     logreg = get_logreg_classifier(aligned)
     predict_with_classifier(logreg, examples_heartrates)
