@@ -116,6 +116,11 @@ def main():
     # -minute_sleep
     # -weight_log_info
     wd = os.getcwd()
+    data_path = wd + "/datasets"
+    if not os.path.exists(data_path):
+        print("Datasets folder not found, please save your csv datasets under:"
+              " <working_dir>/datasets/<month>/<dataset>.csv")
+        return
     dirpath = wd + "/individuals"
     months = ["march", "april"]
     # create a directory 'output' if it doesn't exist yet

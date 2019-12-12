@@ -17,4 +17,11 @@ Idea:\
 -preprocess data to match the timestamp and values\
 -Use (mainly) K-Means Clustering and KNN to classify samples\
 -identify abnormalities/outliers\
--Calculate a new sample's heartrate/steps ratio\
+-Calculate a new sample's heartrate/steps ratio
+
+Running it:\
+-Save datasets under "\<working_dir>/datasets/\<month>/\<dataset>.csv"\
+-Run main.py without arguments\
+-Enjoy!
+
+Dennis Lin
