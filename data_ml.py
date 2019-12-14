@@ -85,12 +85,12 @@ def get_k_means_classifier(dataset, n_clusters=2):
     k_means = cluster.KMeans(n_clusters=n_clusters)
     k_means.fit(dataset)
     print("K-Means Clusters with k = {}".format(n_clusters))
-    print("K-Means Score: {}".format(k_means.score(dataset)))
+    # print("K-Means Score: {}".format(k_means.score(dataset)))
     sorted_centers = list(k_means.cluster_centers_)
-    sorted_centers.sort(key=lambda c: c[1])
+    sorted_centers.sort(key=lambda c: c[0])
     # for center in k_means.cluster_centers_:
     for center in sorted_centers:
-        print("Steps: {}; HR Sum: {}; Ratio: {}".format(str(center[1])[:5], str(center[0])[:5]
+        print("HR Sum: {}; Steps: {}; Ratio: {}".format(str(center[0])[:5], str(center[1])[:5]
               , str(center[0]/center[1])[:5]))
     return k_means
 
@@ -101,7 +101,7 @@ def get_knn_classifier(dataset, n_neighbors=1):
     y_train = dataset[:, 1]
     knn = KNeighborsClassifier(n_neighbors=n_neighbors)
     knn.fit(x_train, y_train)
-    print("KNN Score: {}".format(knn.score(x_train, y_train)))
+    # print("KNN Score: {}".format(knn.score(x_train, y_train)))
     return knn
 
 
@@ -110,7 +110,7 @@ def get_svm_classifier(dataset):
     x_train = dataset[:, 0].reshape(-1, 1)
     y_train = dataset[:, 1]
     svc.fit(x_train, y_train)
-    print("SVM Score: {}".format(svc.score(x_train, y_train)))
+    # print("SVM Score: {}".format(svc.score(x_train, y_train)))
     return svc
 
 
@@ -119,7 +119,7 @@ def get_logreg_classifier(dataset):
     y_train = dataset[:, 1]
     logreg = LogisticRegression(random_state=0)
     logreg.fit(x_train, y_train)
-    print("LogReg Score: {}".format(logreg.score(x_train, y_train)))
+    # print("LogReg Score: {}".format(logreg.score(x_train, y_train)))
     return logreg
 
 
@@ -142,15 +142,47 @@ def predict_with_classifier(classifier, heartrates):
     return results
 
 
+def num_of_0_in_steps(steps_dataset):
+    count = 0
+    for entry in steps_dataset:
+        if np.float(entry[2]) == 0.0:
+            count += 1
+    print("Number of ZERO entries: {}".format(count))
+    return count
+
+
+def remove_0_in_dataset(dataset):
+    processed = []
+    print("Removing ZERO entries in the dataset")
+    for entry in dataset:
+        if float(entry[2]) != float(0):
+            processed.append(entry)
+    print("Original Length: {}; Processed Length: {}".format(len(dataset), len(processed)))
+    return processed
+
+
 def main_hr_steps():
+    # This line is giving a lot of FutureWarnings even when the entire array is np.float64
+    # Will suppress it for now
+    import warnings
+    warnings.simplefilter(action='ignore', category=FutureWarning)
+
     months = ["march", "april"]
-    examples_heartrates = np.array(["73", "75", "135", "151"]).astype(np.float64)
+    examples_heartrates = np.array(["20000", "40000", "60000", "90000"]).astype(np.float64)
     hourly_heartrate = parse_attr("6962181067", "heartrate_hour_sum", months)
     hourly_steps = parse_attr("6962181067", "hourlySteps", months)
+    num_of_0_in_steps(hourly_steps)
+
+    # COMMENT THESE TWO LINES OUT IF YOU WANT TO USE THE FULL UNPROCESSED DATTASETS
+    hourly_heartrate = remove_0_in_dataset(hourly_heartrate)
+    hourly_steps = remove_0_in_dataset(hourly_steps)
+
     aligned = produce_aligned_dataset(hourly_heartrate, hourly_steps)
     print("Dataset Length: {}".format(len(aligned)))
+    print("*** Logistic Regression ***")
     logreg = get_logreg_classifier(aligned)
     predict_with_classifier(logreg, examples_heartrates)
+    print("*** Support Vector Machine ***")
     svc = get_svm_classifier(aligned)
     predict_with_classifier(svc, examples_heartrates)
     for k in range(2, 10):
